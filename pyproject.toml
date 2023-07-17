@@ -1,0 +1,25 @@
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "maksyutov.vlad", email = "maksyutov.vlad@gmail.com"},
+]
+dependencies = [
+    "pydantic>=2.0.3",
+    "pydantic-settings>=2.0.2",
+    "fastapi>=0.100.0",
+    "sqlalchemy>=2.0.19",
+    "alembic>=1.11.1",
+    "aioinject>=0.9.1",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "mypy>=1.4.1",
+    "ruff>=0.0.278",
+]
