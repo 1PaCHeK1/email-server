@@ -141,6 +141,7 @@ venv.bak/
 /site
 
 # mypy
+src/.local
 .mypy_cache/
 .dmypy.json
 dmypy.json

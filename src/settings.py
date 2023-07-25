@@ -7,18 +7,26 @@ class DatabaseSettings(BaseSettings):
     username: str = "postgres"
     password: str = "postgres"
 
-    model_config = SettingsConfigDict(
-        env_prefix="db_",
-    )
+    model_config = SettingsConfigDict(env_prefix="db_")
 
 
 class SmtpSettings(BaseSettings):
     host: str
     port: int
 
-    from_email: str
+    email: str
+    password: str
+
+    max_recipients: int = 30
     timeout: int = 10
 
-    model_config = SettingsConfigDict(
-        env_prefix="smtp_",
-    )
+    model_config = SettingsConfigDict(env_prefix="smtp_")
+
+
+class RabbitSettings(BaseSettings):
+    host: str
+
+    user: str
+    password: str
+
+    model_config = SettingsConfigDict(env_prefix="rabbit_")
