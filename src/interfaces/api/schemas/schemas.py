@@ -1,4 +1,4 @@
-from api.schemas.base import BaseSchema
+from interfaces.api.schemas.base import BaseSchema
 
 
 class GroupSchema(BaseSchema):

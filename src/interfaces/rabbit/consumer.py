@@ -1,32 +1,39 @@
-import asyncio
-import aio_pika
+from core.di import create_container
+from core.domain.email.commands import SendEmailMessage
+from core.domain.email.dto import EmailMessageDto
+from interfaces.rabbit.connection import create_connection
+from settings import RabbitSettings
+import json
 
 
-async def main() -> None:
-    connection = await aio_pika.connect_robust(
-        "amqp://guest:guest@127.0.0.1/",
-    )
+QUEUE_NAME = "test_queue"
 
-    queue_name = "test_queue"
 
-    async with connection:
-        # Creating channel
+async def consume() -> None:
+    container = create_container()
+
+    settings = RabbitSettings()
+    connection_ctx = create_connection(settings=settings)
+
+    async with connection_ctx as connection:
         channel = await connection.channel()
 
-        # Will take no more than 10 messages in advance
-        await channel.set_qos(prefetch_count=10)
-
-        # Declaring queue
-        queue = await channel.declare_queue(queue_name, auto_delete=True)
+        await channel.set_qos(prefetch_count=settings.prefetch_count)
+        queue = await channel.declare_queue(QUEUE_NAME, durable=True)
 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:
-                async with message.process(requeue=True):
-                    print(message.body)
-
-                    if queue.name in message.body.decode():
-                        break
+                async with container.context() as ctx:
+                    command = await ctx.resolve(SendEmailMessage)
+                    async with message.process(requeue=True):
+                        data = json.loads(message.body)
+                        await command(EmailMessageDto.model_validate(data))
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import anyio
+    import dotenv
+
+    dotenv.load_dotenv()
+
+    anyio.run(consume)

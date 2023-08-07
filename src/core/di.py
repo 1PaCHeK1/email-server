@@ -1,16 +1,20 @@
 import smtplib
 import aioinject
+import aio_pika.abc
 from functools import lru_cache
 
 from core.domain.email.commands import SendEmailMessage
-from settings import DatabaseSettings, SmtpSettings
+from settings import DatabaseSettings, SmtpSettings, RabbitSettings
 from core.domain.email.services import EmailService, create_smtp_client
-from typing import Callable, TypeVar
+import typing
+from interfaces.rabbit.connection import create_connection
+from interfaces.rabbit.publisher import create_channel
 
 
-TSettings = TypeVar("TSettings")
+TSettings = typing.TypeVar("TSettings")
 
-def _settings_factory(type_: type[TSettings]) -> Callable[[], TSettings]:
+
+def _settings_factory(type_: type[TSettings]) -> typing.Callable[[], TSettings]:
     def inner() -> TSettings:
         return type_()
 
@@ -21,12 +25,22 @@ def _settings_factory(type_: type[TSettings]) -> Callable[[], TSettings]:
 def create_container() -> aioinject.Container:
     container = aioinject.Container()
 
-    for settings_type in (DatabaseSettings, SmtpSettings):
+    for settings_type in (DatabaseSettings, SmtpSettings, RabbitSettings):
         container.register(
-            aioinject.Singleton(_settings_factory(settings_type), type_=settings_type),
+            aioinject.Singleton(
+                _settings_factory(settings_type),  # type: ignore[arg-type]
+                type_=settings_type,
+            ),
         )
 
     container.register(aioinject.Singleton(create_smtp_client, type_=smtplib.SMTP))
+    container.register(
+        aioinject.Singleton(create_connection, type_=aio_pika.abc.AbstractConnection),
+    )
+    container.register(
+        aioinject.Callable(create_channel, type_=aio_pika.abc.AbstractChannel),
+    )
+
     container.register(aioinject.Callable(EmailService))
     container.register(aioinject.Callable(SendEmailMessage))
 

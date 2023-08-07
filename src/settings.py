@@ -24,9 +24,14 @@ class SmtpSettings(BaseSettings):
 
 
 class RabbitSettings(BaseSettings):
-    host: str
+    model_config = SettingsConfigDict(env_prefix="rabbit_")
 
+    host: str
     user: str
     password: str
 
-    model_config = SettingsConfigDict(env_prefix="rabbit_")
+    prefetch_count: int = 10
+
+    @property
+    def url(self) -> str:
+        return f"amqp://{self.user}:{self.password}@{self.host}/"
