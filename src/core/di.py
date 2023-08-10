@@ -9,7 +9,8 @@ from core.domain.email.services import EmailService, create_smtp_client
 import typing
 from interfaces.rabbit.connection import create_connection
 from interfaces.rabbit.publisher import create_channel
-
+from sqlalchemy.orm import Session
+from db.base import Database, get_session
 
 TSettings = typing.TypeVar("TSettings")
 
@@ -25,14 +26,16 @@ def _settings_factory(type_: type[TSettings]) -> typing.Callable[[], TSettings]:
 def create_container() -> aioinject.Container:
     container = aioinject.Container()
 
-    for settings_type in (DatabaseSettings, SmtpSettings, RabbitSettings):
+    for settings_type in (SmtpSettings, RabbitSettings):
         container.register(
             aioinject.Singleton(
                 _settings_factory(settings_type),  # type: ignore[arg-type]
                 type_=settings_type,
             ),
         )
-
+    container.register(aioinject.Singleton(Database))
+    container.register(aioinject.Callable(get_session, Session))
+    
     container.register(aioinject.Singleton(create_smtp_client, type_=smtplib.SMTP))
     container.register(
         aioinject.Singleton(create_connection, type_=aio_pika.abc.AbstractConnection),
