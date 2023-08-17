@@ -1,19 +1,17 @@
-import sqlalchemy
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from db.base import Base
-from db.types import str_128
-from uuid import uuid4
+from db.types import str_128, uuid
 from group import Group
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[sqlalchemy.UUID] = mapped_column(sqlalchemy.UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[uuid]
     email: Mapped[str_128] = mapped_column(unique=True)
     first_name: Mapped[str_128]
     last_name: Mapped[str_128]
-    global_id: Mapped[sqlalchemy.UUID] = mapped_column(index=True)
+    global_id: Mapped[uuid] = mapped_column(index=True)
 
     groups_with_user: Mapped[list[Group]] = relationship(
         secondary="user__group",

@@ -26,14 +26,13 @@ def _settings_factory(type_: type[TSettings]) -> typing.Callable[[], TSettings]:
 def create_container() -> aioinject.Container:
     container = aioinject.Container()
 
-    for settings_type in (SmtpSettings, RabbitSettings):
+    for settings_type in (DatabaseSettings, SmtpSettings, RabbitSettings):
         container.register(
             aioinject.Singleton(
                 _settings_factory(settings_type),  # type: ignore[arg-type]
                 type_=settings_type,
             ),
         )
-    container.register(aioinject.Singleton(Database))
     container.register(aioinject.Callable(get_session, Session))
     
     container.register(aioinject.Singleton(create_smtp_client, type_=smtplib.SMTP))
