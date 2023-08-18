@@ -1,12 +1,15 @@
-from collections.abc import Iterator, Generator
-from contextlib import contextmanager
+from collections.abc import Iterator, AsyncIterable
+from contextlib import contextmanager, asynccontextmanager
 
 from sqlalchemy import create_engine, orm
-from sqlalchemy.orm import declarative_base, Session
-
+from sqlalchemy.orm import  Session, DeclarativeBase
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncEngine, AsyncSession
 from settings import DatabaseSettings
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
+
 
 
 class Database:
@@ -25,11 +28,19 @@ class Database:
 
     @contextmanager
     def session(self) -> Iterator[Session]:
-        with self.session_factory() as session:
+        with self.session_factory.begin() as session:
             yield session
 
 
-@contextmanager
-def get_session(database: Database) -> Generator[Session]:
-    with database.session_factory() as session:
+def create_database_engine(settings: DatabaseSettings) -> AsyncEngine:
+    return create_async_engine(settings.url)
+
+
+def create_sessionmaker(engine: AsyncEngine) -> async_sessionmaker[AsyncEngine]:
+    return async_sessionmaker(engine)
+
+
+@asynccontextmanager
+async def get_session(sessionmaker: async_sessionmaker[AsyncEngine]) -> AsyncIterable[AsyncSession]:
+    async with sessionmaker.begin() as session:
         yield session

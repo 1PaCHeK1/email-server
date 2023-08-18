@@ -3,7 +3,11 @@ from collections.abc import Sequence
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from common.collections_tools import batched
+from core.domain.email.dto import EmailMessageDto
+from db.models import SendedEmail
 from settings import SmtpSettings
 
 
@@ -14,7 +18,7 @@ def create_smtp_client(settings: SmtpSettings) -> smtplib.SMTP:
     return client
 
 
-class EmailService:
+class SmtpService:
     def __init__(
         self,
         client: smtplib.SMTP,
@@ -37,3 +41,17 @@ class EmailService:
             msg.attach(MIMEText(message))
 
             self._client.send_message(msg)
+
+
+class EmailService:
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
+
+    async def record(self, message: EmailMessageDto) -> SendedEmail:
+        db_message = SendedEmail(
+            title=message.subject,
+            message=message.message,
+            recipients=message.recipients,
+        )
+        self.session.add(db_message)
+        await self.session.flush()

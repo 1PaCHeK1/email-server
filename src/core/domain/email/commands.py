@@ -1,23 +1,33 @@
 import anyio.to_thread
 import functools
 from .dto import EmailMessageDto
-from .services import EmailService
+from .services import SmtpService, EmailService
 
 
 
 class SendEmailMessage:
     def __init__(
         self,
-        service: EmailService
+        smtp_service: SmtpService,
+        email_service: EmailService
     ) -> None:
-        self._service = service
+        self.smtp_service = smtp_service
+        self.email_service = email_service
 
     async def __call__(self, dto: EmailMessageDto) -> None:
         await anyio.to_thread.run_sync(
             functools.partial(
-                self._service.send_email,
+                self.smtp_service.send_email,
                 recipients=dto.recipients,
                 subject=dto.subject,
                 message=dto.message,
             ),
         )
+        await self.email_service.record(dto)
+
+
+
+# Endpoint
+# Command / Query
+# Service
+# Repository

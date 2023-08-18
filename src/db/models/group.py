@@ -1,14 +1,18 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy import ForeignKey
 from db.base import Base
-from db.types import str_128, uuid
-from user import User
+from db.types import str_128, uuid_pk
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 class Group(Base):
     __tablename__ = "groups"
 
-    id: Mapped[uuid]
+    id: Mapped[uuid_pk]
     name: Mapped[str_128]
     code: Mapped[str_128] = mapped_column(unique=True)
 
@@ -21,9 +25,8 @@ class Group(Base):
 class UserGroup(Base):
     __tablename__ = "user__group"
 
-    user_id: Mapped[uuid] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    group_id: Mapped[uuid] = mapped_column(ForeignKey("groups.id", ondelete="CASCADE"))
+    user_id: Mapped[uuid_pk] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    group_id: Mapped[uuid_pk] = mapped_column(ForeignKey("groups.id", ondelete="CASCADE"))
 
-    user: Mapped[User] = relationship(primaryjoin="foreign(UserGroup.user_id) == User.id")
-    group: Mapped[Group] = relationship(primaryjoin="foreign(UserGroup.group_id) == Group.id")
-    
+    user: Mapped[User] = relationship()
+    group: Mapped[Group] = relationship()

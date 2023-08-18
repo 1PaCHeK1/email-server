@@ -1,13 +1,21 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from urllib.parse import quote_plus
 
 
 class DatabaseSettings(BaseSettings):
+
+    driver: str = "postgresql+asyncpg"
     host: str = "localhost"
     port: int = 5432
     username: str = "postgres"
     password: str = "postgres"
-
+    name: str = "email-server"
     model_config = SettingsConfigDict(env_prefix="db_")
+
+    @property
+    def url(self) -> str:
+        password = quote_plus(self.password)
+        return f"{self.driver}://{self.username}:{password}@{self.host}:{self.port}/{self.name}"
 
 
 class SmtpSettings(BaseSettings):

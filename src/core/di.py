@@ -3,14 +3,15 @@ import aioinject
 import aio_pika.abc
 from functools import lru_cache
 
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
+
 from core.domain.email.commands import SendEmailMessage
 from settings import DatabaseSettings, SmtpSettings, RabbitSettings
-from core.domain.email.services import EmailService, create_smtp_client
+from core.domain.email.services import SmtpService, EmailService, create_smtp_client
 import typing
 from interfaces.rabbit.connection import create_connection
 from interfaces.rabbit.publisher import create_channel
-from sqlalchemy.orm import Session
-from db.base import Database, get_session
+from db.base import create_database_engine, create_sessionmaker, get_session
 
 TSettings = typing.TypeVar("TSettings")
 
@@ -33,8 +34,11 @@ def create_container() -> aioinject.Container:
                 type_=settings_type,
             ),
         )
-    container.register(aioinject.Callable(get_session, Session))
-    
+
+    container.register(aioinject.Singleton(create_database_engine, AsyncEngine))
+    container.register(aioinject.Singleton(create_sessionmaker, async_sessionmaker[AsyncEngine]))
+    container.register(aioinject.Callable(get_session, AsyncSession))
+
     container.register(aioinject.Singleton(create_smtp_client, type_=smtplib.SMTP))
     container.register(
         aioinject.Singleton(create_connection, type_=aio_pika.abc.AbstractConnection),
@@ -43,6 +47,7 @@ def create_container() -> aioinject.Container:
         aioinject.Callable(create_channel, type_=aio_pika.abc.AbstractChannel),
     )
 
+    container.register(aioinject.Callable(SmtpService))
     container.register(aioinject.Callable(EmailService))
     container.register(aioinject.Callable(SendEmailMessage))
 

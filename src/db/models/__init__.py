@@ -1,11 +1,11 @@
 from .user import User
-from .email import SendedEmails
+from .email import SendedEmail
 from .group import Group, UserGroup
 
 
 __all__ = [
     "User",
-    "SendedEmails",
+    "SendedEmail",
     "Group",
     "UserGroup"
 ]
