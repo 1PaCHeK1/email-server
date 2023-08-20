@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from core.domain.email.commands import SendEmailMessage
 from settings import DatabaseSettings, SmtpSettings, RabbitSettings
 from core.domain.email.services import SmtpService, EmailService, create_smtp_client
+from .domain.user import UserService, GetUsers
 import typing
 from interfaces.rabbit.connection import create_connection
 from interfaces.rabbit.publisher import create_channel
@@ -50,5 +51,8 @@ def create_container() -> aioinject.Container:
     container.register(aioinject.Callable(SmtpService))
     container.register(aioinject.Callable(EmailService))
     container.register(aioinject.Callable(SendEmailMessage))
+    
+    container.register(aioinject.Callable(UserService))
+    container.register(aioinject.Callable(GetUsers))
 
     return container

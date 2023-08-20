@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from aioinject.ext.fastapi import inject
 from db.models import User
 from sqlalchemy import select
-
+from core.domain.user import GetUsers
 
 router = APIRouter(prefix="/users")
 
@@ -14,14 +14,12 @@ router = APIRouter(prefix="/users")
 @router.get("/all")
 @inject
 async def get_all_users(
-    session: Annotated[Session, Inject],
+    get_users: Annotated[GetUsers, Inject],
 ) -> list[UserSchema]:
-    stmt = session.scalars(select(User.id, User.email, User.groups_with_user)).all()
-    users = []
-    for (id, email, groups) in stmt:
-        users.append(UserSchema.model_validate({
-            "id": id,
-            "email": email,
-            "groups": [GroupSchema.model_validate({"id": group.id, "name": group.name}) for group in groups],
-        }))
+    users_db = await get_users()
+    users = [UserSchema(
+        id=user.id,
+        email=user.email,
+        groups=user.groups_with_user,
+    ) for user in users_db]
     return users
