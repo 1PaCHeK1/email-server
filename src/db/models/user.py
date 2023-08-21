@@ -1,8 +1,10 @@
+
 import uuid
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from db.base import Base
 from db.types import str_128, uuid_pk
-from .group import Group
+from sqlalchemy.ext.associationproxy import association_proxy, AssociationProxy
+from .group import Group, UserGroup
 
 
 class User(Base):
@@ -14,7 +16,8 @@ class User(Base):
     last_name: Mapped[str_128]
     global_id: Mapped[uuid.UUID] = mapped_column(index=True)
 
-    groups_with_user: Mapped[list[Group]] = relationship(
-        secondary="user__group",
-        back_populates="users_in_group",
+    group_associations: Mapped[list[UserGroup]] = relationship()
+    groups: AssociationProxy[list[Group]] = association_proxy(
+        "group_associations",
+        "group",
     )

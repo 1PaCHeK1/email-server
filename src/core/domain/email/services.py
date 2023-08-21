@@ -55,3 +55,4 @@ class EmailService:
         )
         self.session.add(db_message)
         await self.session.flush()
+        return db_message
