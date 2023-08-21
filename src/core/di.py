@@ -37,7 +37,10 @@ def create_container() -> aioinject.Container:
         )
 
     container.register(aioinject.Singleton(create_database_engine, AsyncEngine))
-    container.register(aioinject.Singleton(create_sessionmaker, async_sessionmaker[AsyncEngine]))
+    container.register(aioinject.Singleton(
+        create_sessionmaker,
+        async_sessionmaker[AsyncEngine]),
+    )
     container.register(aioinject.Callable(get_session, AsyncSession))
 
     container.register(aioinject.Singleton(create_smtp_client, type_=smtplib.SMTP))
@@ -51,7 +54,7 @@ def create_container() -> aioinject.Container:
     container.register(aioinject.Callable(SmtpService))
     container.register(aioinject.Callable(EmailService))
     container.register(aioinject.Callable(SendEmailMessage))
-    
+
     container.register(aioinject.Callable(UserService))
     container.register(aioinject.Callable(GetUsers))
 

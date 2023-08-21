@@ -7,7 +7,7 @@ from sqlalchemy import pool
 from alembic import context
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from db.models import *
+from db.models import *  # noqa: F403
 from db.base import Base
 from settings import DatabaseSettings
 # this is the Alembic Config object, which provides

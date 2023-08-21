@@ -24,10 +24,3 @@ class SendEmailMessage:
             ),
         )
         await self.email_service.record(dto)
-
-
-
-# Endpoint
-# Command / Query
-# Service
-# Repository

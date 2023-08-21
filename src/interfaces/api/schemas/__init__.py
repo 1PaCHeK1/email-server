@@ -1,4 +1,4 @@
-from schemas import GroupSchema, UserSchema, EmailMessageSchema
+from .schemas import GroupSchema, UserSchema, EmailMessageSchema
 
 __all__ = [
     "GroupSchema",
